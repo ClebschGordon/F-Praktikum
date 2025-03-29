@@ -1,0 +1,86 @@
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy.optimize import curve_fit
+import io
+
+# File path
+file_path = "Nick_Salah/Nick_Sala_SC_0.dat"
+
+# Read file and replace commas with dots in memory
+with open(file_path, "r") as file:
+    processed_text = file.read().replace(",", ".")
+
+# Convert text into a file-like object and load data, skipping headers
+data = np.genfromtxt(io.StringIO(processed_text), skip_header=15,skip_footer=131)
+# The last 130ish datapoints are skipped because we cannot convertet them into temperatures using the ITS-90
+
+# Extract columns
+col1 = data[:, 0]
+col2 = data[:, 1]
+col3 = data[:, 2]
+col4 = data[:, 3]
+col5 = data[:, 4]
+
+plt.plot(data[:,2],data[:,3])
+plt.show()
+
+# File path
+file_path = "Nick_Salah/Calibration.dat"  # Update with actual file path
+
+# Read file and replace commas with dots in memory
+with open(file_path, "r") as file:
+    processed_text = file.read().replace(",", ".")
+
+# Convert text into a file-like object and load data, skipping headers
+data = np.genfromtxt(io.StringIO(processed_text), skip_header=3)
+
+# Extract columns (X in Volts, Y in mBar)
+x_data_volts = data[:, 1]  # X values in Volts
+y_data_mbar = data[:, 0]   # Y values in mBar
+
+# Define a linear function (y = mx + b)
+def linear_func(x, m, b):
+    return m * x + b
+
+# Fit the data to the linear function
+params, covariance = curve_fit(linear_func, x_data_volts, y_data_mbar)
+m, b = params  # Extract slope (mBar/V) and intercept (mBar)
+
+# Calculate the errors (standard deviations) of the parameters
+errors = np.sqrt(np.diag(covariance))
+m_error, b_error = errors  # Error in slope and intercept
+
+# Generate fitted values
+x_fit_volts = np.linspace(min(x_data_volts), max(x_data_volts), 100)
+y_fit_mbar = linear_func(x_fit_volts, m, b)
+
+# Plot data and fitted line
+plt.scatter(x_data_volts, y_data_mbar, label='Data', color='red')
+plt.plot(x_fit_volts, y_fit_mbar, label=f'Fit: P = {m:.2e} * V + {b:.2e}', color='blue')
+plt.xlabel('Voltage (V)')
+plt.ylabel('Pressure (mBar)')
+plt.legend()
+plt.title('Linear Fit: Voltage vs. Pressure')
+plt.show()
+
+# Print fitted parameters and their errors
+print(f"Fitted parameters and errors:")
+print(f"Slope (mBar/V) = {m:.4e} ± {m_error:.4e}")
+print(f"Intercept (mBar) = {b:.4e} ± {b_error:.4e}")
+
+# These fit parameters will now be used to calculate the pressure from the recorded Voltages (column: U_Manometer).
+def linearDependence(Voltage):
+    return m*Voltage + b
+#
+from TemperatureCalibration import pressure_to_temperature
+temp_above = pressure_to_temperature(linearDependence(col3[:2251-16]),True)
+temp_below = pressure_to_temperature(linearDependence(col3[2251-16:2580]),False)
+
+temp = np.append(temp_above,temp_below)
+plt.plot(temp[:],col3[:])
+plt.show()
+
+#print(linearDependence(col3[2625]))
+
+
+

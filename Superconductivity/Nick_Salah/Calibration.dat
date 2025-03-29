@@ -1,0 +1,12 @@
+Here are the Up-p Datapoints which were manually recorded and will be used to
+calibrate the resistance thermometer
+pressure(mbar) Voltage(V)
+1039 0.990067
+1033 0.983666
+777 0.739503
+618 0.588706
+617 0.588150
+483 0.460470
+481 0.458410
+261 0.249635
+184 0.175983

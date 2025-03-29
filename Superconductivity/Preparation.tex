@@ -1,0 +1,46 @@
+\documentclass{article}
+\usepackage{amsmath, amssymb}
+
+\begin{document}
+
+\title{Derivation of the Magnetic Field Inside a Finite Solenoid}
+\author{}
+\date{}
+\maketitle
+
+\section{Introduction}
+We derive the magnetic field $B(z)$ inside a solenoid of finite length $L$, inner radius $r$, and outer radius $R$ using the Biot-Savart law.
+
+\section{Magnetic Field Due to a Thin Solenoid}
+For a single-radius solenoid of radius $a$, the field along the axis is given by:
+
+\begin{equation}
+B_a(z) = \frac{\mu_0 n I}{2} \left[ \frac{L/2 + z}{\sqrt{a^2 + (L/2 + z)^2}} + \frac{L/2 - z}{\sqrt{a^2 + (L/2 - z)^2}} \right].
+\end{equation}
+
+\section{Averaging Over the Radial Thickness}
+For a solenoid with thickness from $r$ to $R$, we integrate over all current loops:
+
+\begin{equation}
+B(z) = \frac{1}{R - r} \int_r^R B_a(z) \, da.
+\end{equation}
+
+Using the integral identity:
+
+\begin{equation}
+\int \frac{da}{\sqrt{a^2 + C^2}} = \ln \left( a + \sqrt{a^2 + C^2} \right),
+\end{equation}
+
+we obtain:
+
+\begin{equation}
+\int_r^R \frac{da}{\sqrt{a^2 + C^2}} = \ln \left( \frac{R + \sqrt{R^2 + C^2}}{r + \sqrt{r^2 + C^2}} \right).
+\end{equation}
+
+Applying this result to both terms in $B_a(z)$, we derive the final expression:
+
+\begin{equation}
+B(z) = \frac{\mu_0 n I}{R - r} \ln \left( \frac{(R + \sqrt{R^2 + (L/2 + z)^2})(R + \sqrt{R^2 + (L/2 - z)^2})}{(r + \sqrt{r^2 + (L/2 + z)^2})(r + \sqrt{r^2 + (L/2 - z)^2})} \right).
+\end{equation}
+
+\end{document}
