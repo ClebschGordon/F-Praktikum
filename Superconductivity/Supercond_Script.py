@@ -74,26 +74,29 @@ def linearDependence(Voltage):
 #
 from TemperatureCalibration import pressure_to_temperature
 LambdaPointidx = 2235
+cutoffPoint = 2460
 temp_above = pressure_to_temperature(linearDependence(col3[:LambdaPointidx]),True)
-temp_below = pressure_to_temperature(linearDependence(col3[LambdaPointidx:2580]),False)
-
+temp_below = pressure_to_temperature(linearDependence(col3[LambdaPointidx:cutoffPoint]),False)
+temp_belowForPlot = pressure_to_temperature(linearDependence(col3[LambdaPointidx:]),False)
 temp = np.append(temp_above,temp_below)
-plt.scatter(temp[:],col4[:],s=5)
+tempForPlot = np.append(temp_above,temp_belowForPlot)
+
+plt.scatter(tempForPlot[:],col4[:],s=5)
 
 def expoFit(x,U0,C,d):
     return U0*np.exp(C/x) + d
 
-expoParamsAbove, Expocovariance = curve_fit(expoFit, temp_above, col4[:LambdaPointidx],maxfev=5000)
+expoParamsAbove, Expocovariance = curve_fit(expoFit, temp_above, col4[:LambdaPointidx],p0=[4,10,-4],maxfev=5000)
 print(expoParamsAbove)
 U0,C,d = expoParamsAbove
-expoParamsBelow, ExpocovarianceBelow = curve_fit(expoFit,temp_below,col4[LambdaPointidx:2580],maxfev=5000)
+expoParamsBelow, ExpocovarianceBelow = curve_fit(expoFit,temp_below,col4[LambdaPointidx:cutoffPoint],p0=[9,4,-17],maxfev=5000)
 print(expoParamsBelow)
 U0Bel,CBel,dBel = expoParamsBelow
 
 x = np.linspace(temp_above[0],temp_above[LambdaPointidx-1],100)
 plt.plot(x,expoFit(x,U0,C,d),color='red')
 
-xb = np.linspace(temp[LambdaPointidx],temp[2580-1],100)
+xb = np.linspace(temp[LambdaPointidx],temp[cutoffPoint-1],100)
 plt.plot(xb,expoFit(xb,U0Bel,CBel,dBel),color='red')
 plt.show()
 
@@ -105,11 +108,11 @@ def AllanBradleyToTemp(U,isAboveLambda):
         return CBel/np.log((U-dBel)/U0Bel)
 
 
-#print(AllanBradleyToTemp(col4[:2251-16],True))
-#print(AllanBradleyToTemp(col4[2251-16:2580],False))
 
-AllanBradleyAbove = AllanBradleyToTemp(col4[:2251-16],True)
-AllanBradleyBelow = AllanBradleyToTemp(col4[2251-16:2580],False)
+AllanBradleyAbove = AllanBradleyToTemp(col4[:LambdaPointidx],True)
+AllanBradleyBelow = AllanBradleyToTemp(col4[LambdaPointidx:cutoffPoint],False)
+#print(AllanBradleyBelow)
+#print(AllanBradleyAbove)
 
 
 
