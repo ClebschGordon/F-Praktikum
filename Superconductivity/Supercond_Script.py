@@ -21,8 +21,8 @@ col3 = data[:, 2]
 col4 = data[:, 3]
 col5 = data[:, 4]
 
-plt.plot(data[:,2],data[:,3])
-plt.show()
+#plt.plot(data[:,2],data[:,3])
+#plt.show()
 
 # File path
 file_path = "Nick_Salah/Calibration.dat"  # Update with actual file path
@@ -55,13 +55,13 @@ x_fit_volts = np.linspace(min(x_data_volts), max(x_data_volts), 100)
 y_fit_mbar = linear_func(x_fit_volts, m, b)
 
 # Plot data and fitted line
-plt.scatter(x_data_volts, y_data_mbar, label='Data', color='red')
-plt.plot(x_fit_volts, y_fit_mbar, label=f'Fit: P = {m:.2e} * V + {b:.2e}', color='blue')
-plt.xlabel('Voltage (V)')
-plt.ylabel('Pressure (mBar)')
-plt.legend()
-plt.title('Linear Fit: Voltage vs. Pressure')
-plt.show()
+#plt.scatter(x_data_volts, y_data_mbar, label='Data', color='red')
+#plt.plot(x_fit_volts, y_fit_mbar, label=f'Fit: P = {m:.2e} * V + {b:.2e}', color='blue')
+#plt.xlabel('Voltage (V)')
+#plt.ylabel('Pressure (mBar)')
+#plt.legend()
+#plt.title('Linear Fit: Voltage vs. Pressure')
+#plt.show()
 
 # Print fitted parameters and their errors
 print(f"Fitted parameters and errors:")
@@ -73,14 +73,46 @@ def linearDependence(Voltage):
     return m*Voltage + b
 #
 from TemperatureCalibration import pressure_to_temperature
-temp_above = pressure_to_temperature(linearDependence(col3[:2251-16]),True)
-temp_below = pressure_to_temperature(linearDependence(col3[2251-16:2580]),False)
+LambdaPointidx = 2235
+temp_above = pressure_to_temperature(linearDependence(col3[:LambdaPointidx]),True)
+temp_below = pressure_to_temperature(linearDependence(col3[LambdaPointidx:2580]),False)
 
 temp = np.append(temp_above,temp_below)
-plt.plot(temp[:],col3[:])
+plt.scatter(temp[:],col4[:],s=5)
+
+def expoFit(x,U0,C,d):
+    return U0*np.exp(C/x) + d
+
+expoParamsAbove, Expocovariance = curve_fit(expoFit, temp_above, col4[:LambdaPointidx],maxfev=5000)
+print(expoParamsAbove)
+U0,C,d = expoParamsAbove
+expoParamsBelow, ExpocovarianceBelow = curve_fit(expoFit,temp_below,col4[LambdaPointidx:2580],maxfev=5000)
+print(expoParamsBelow)
+U0Bel,CBel,dBel = expoParamsBelow
+
+x = np.linspace(temp_above[0],temp_above[LambdaPointidx-1],100)
+plt.plot(x,expoFit(x,U0,C,d),color='red')
+
+xb = np.linspace(temp[LambdaPointidx],temp[2580-1],100)
+plt.plot(xb,expoFit(xb,U0Bel,CBel,dBel),color='red')
 plt.show()
 
-#print(linearDependence(col3[2625]))
+
+def AllanBradleyToTemp(U,isAboveLambda):
+    if isAboveLambda:
+        return C/np.log((U-d)/U0)
+    else:
+        return CBel/np.log((U-dBel)/U0Bel)
+
+
+#print(AllanBradleyToTemp(col4[:2251-16],True))
+#print(AllanBradleyToTemp(col4[2251-16:2580],False))
+
+AllanBradleyAbove = AllanBradleyToTemp(col4[:2251-16],True)
+AllanBradleyBelow = AllanBradleyToTemp(col4[2251-16:2580],False)
+
+
+
 
 
 

@@ -1,14 +1,14 @@
 import numpy as np
 
 
-# Define the coefficients and constants globally (or in some configuration)
-A_coeffs_high = [3.146631,1.257655,0.413923,0.091159,0.016349,0.001826,-0.004325,-0.004973,0,0]  # Example coefficients for high temperature region
-B_high = 10.3  # Example B constant for high temperatures
-C_high = 1.9  # Example C constant for high temperatures
 
-A_coeffs_low = [1.392408,0.527153,0.166756,0.050988,0.026514,0.001975,-0.017976,0.005409,0.013259,0]  # Example coefficients for low temperature region
-B_low = 5.6  # Example B constant for low temperatures
-C_low = 2.9  # Example C constant for low temperatures
+A_coeffs_high = [3.146631,1.257655,0.413923,0.091159,0.016349,0.001826,-0.004325,-0.004973,0,0]
+B_high = 10.3
+C_high = 1.9
+
+A_coeffs_low = [1.392408,0.527153,0.166756,0.050988,0.026514,0.001975,-0.017976,0.005409,0.013259,0]
+B_low = 5.6
+C_low = 2.9
 
 
 def pressure_to_temperature(pressure_mbar, above_threshold):
