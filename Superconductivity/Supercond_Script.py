@@ -21,7 +21,7 @@ col3 = data[:, 2]
 col4 = data[:, 3]
 col5 = data[:, 4]
 
-plt.plot(data[:,2],data[:,3])
+#plt.plot(data[:,2],data[:,3])
 #plt.show()
 
 # File path
@@ -68,6 +68,7 @@ print(f"Fitted parameters and errors:")
 print(f"Slope (mBar/V) = {m:.4e} ± {m_error:.4e}")
 print(f"Intercept (mBar) = {b:.4e} ± {b_error:.4e}")
 
+
 # These fit parameters will now be used to calculate the pressure from the recorded Voltages (column: U_Manometer).
 def linearDependence(Voltage):
     return m*Voltage + b
@@ -86,7 +87,8 @@ plt.scatter(tempForPlot[:],col4[:],s=5)
 def expoFit(x,U0,C,d):
     return U0*np.exp(C/x) + d
 
-expoParamsAbove, Expocovariance = curve_fit(expoFit, temp_above, col4[:LambdaPointidx],p0=[4,10,-4],maxfev=5000)
+
+expoParamsAbove, Expocovariance = curve_fit(expoFit, temp_above, col4[:LambdaPointidx],p0=[0.00432,4.84,-0.00434],maxfev=5000)
 print(expoParamsAbove)
 U0,C,d = expoParamsAbove
 expoParamsBelow, ExpocovarianceBelow = curve_fit(expoFit,temp_below,col4[LambdaPointidx:cutoffPoint],p0=[9,4,-17],maxfev=5000)
@@ -100,7 +102,9 @@ xb = np.linspace(temp[LambdaPointidx],temp[cutoffPoint-1],100)
 plt.plot(xb,expoFit(xb,U0Bel,CBel,dBel),color='red')
 plt.show()
 
-
+#U0=0.00432
+#C=4.84
+#d=-0.00434
 def AllanBradleyToTemp(U,isAboveLambda):
     if isAboveLambda:
         return C/np.log((U-d)/U0)
