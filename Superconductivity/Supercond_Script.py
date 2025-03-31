@@ -21,7 +21,7 @@ col3 = data[:, 2]
 col4 = data[:, 3]
 col5 = data[:, 4]
 
-#plt.plot(data[:,2],data[:,3])
+plt.plot(data[:,2],data[:,3])
 #plt.show()
 
 # File path
