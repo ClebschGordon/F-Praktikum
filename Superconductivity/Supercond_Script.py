@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 import numpy as np
 from scipy.optimize import curve_fit
 import io
@@ -75,14 +76,25 @@ def linearDependence(Voltage):
 #
 from TemperatureCalibration import pressure_to_temperature
 LambdaPointidx = 2235
-cutoffPoint = 2460
+cutoffPoint = 2400
 temp_above = pressure_to_temperature(linearDependence(col3[:LambdaPointidx]),True)
 temp_below = pressure_to_temperature(linearDependence(col3[LambdaPointidx:cutoffPoint]),False)
 temp_belowForPlot = pressure_to_temperature(linearDependence(col3[LambdaPointidx:]),False)
 temp = np.append(temp_above,temp_below)
 tempForPlot = np.append(temp_above,temp_belowForPlot)
 
-plt.scatter(tempForPlot[:],col4[:],s=5)
+# Now we also need to fit the error bars of the data in order to calculate the errors of the fit parameters
+pressureErrors_above = linearDependence(col3[:LambdaPointidx]) + linearDependence(col3[:LambdaPointidx])*0.003 + 1
+temperatureErrors_above = pressure_to_temperature(pressureErrors_above,True)
+
+pressureErrors_above_below = linearDependence(col3[:LambdaPointidx]) - linearDependence(col3[:LambdaPointidx])*0.003 - 1
+temperatureError_above_below = pressure_to_temperature(pressureErrors_above_below,True)
+
+pressureErrors_below = linearDependence(col3[LambdaPointidx:]) + linearDependence(col3[LambdaPointidx:])*0.003 + 1
+temperatureErrors_below = pressure_to_temperature(pressureErrors_below,False)
+
+pressureErrors_below_below = linearDependence(col3[LambdaPointidx:]) - linearDependence(col3[LambdaPointidx:])*0.003 - 1
+temperatureErrors_below_below = pressure_to_temperature(pressureErrors_below_below,False)
 
 def expoFit(x,U0,C,d):
     return U0*np.exp(C/x) + d
@@ -91,32 +103,64 @@ def expoFit(x,U0,C,d):
 expoParamsAbove, Expocovariance = curve_fit(expoFit, temp_above, col4[:LambdaPointidx],p0=[0.00432,4.84,-0.00434],maxfev=5000)
 print(expoParamsAbove)
 U0,C,d = expoParamsAbove
+
+errorAboveParams, covariance = curve_fit(expoFit,temperatureErrors_above,col4[:LambdaPointidx],p0=[0.00432,4.84,-0.00434],maxfev=5000)
+U0ErrAbove,CErrAbove,dErrAbove = errorAboveParams
+print("error" + str(errorAboveParams))
+errorAboveParamsBelow, covariance = curve_fit(expoFit,temperatureError_above_below,col4[:LambdaPointidx],p0=[0.00432,4.84,-0.00434],maxfev=5000)
+U0ErrAboveBelow,CErrAboveBelow,dErrAboveBelow = errorAboveParamsBelow
+print("errorBelow"+str(errorAboveParamsBelow))
+
+########################### Below the Lambda Point ####################################
+
 expoParamsBelow, ExpocovarianceBelow = curve_fit(expoFit,temp_below,col4[LambdaPointidx:cutoffPoint],p0=[9,4,-17],maxfev=5000)
 print(expoParamsBelow)
 U0Bel,CBel,dBel = expoParamsBelow
+
+errorBelowParams, covariance = curve_fit(expoFit,temperatureErrors_below[:(cutoffPoint-LambdaPointidx)],col4[LambdaPointidx:cutoffPoint],p0=[9,4,-17],maxfev=5000)
+print("error"+str(errorBelowParams))
+U0ErrBelow,CErrBelow,dErrBelow = errorBelowParams
+errorBelowParamsBelow, covariance = curve_fit(expoFit,temperatureErrors_below_below[:(cutoffPoint-LambdaPointidx)],col4[LambdaPointidx:cutoffPoint],p0=[9,4,-17],maxfev=5000)
+print("errorBelow"+str(errorBelowParamsBelow))
+U0ErrBelowBelow,CErrBelowBelow,dErrBelowBelow = errorBelowParamsBelow
+
+plt.plot(tempForPlot[:],col4[:],color='black')
+plt.plot(temperatureErrors_below_below[:-1],col4[LambdaPointidx:-1],color='grey')
+plt.plot(temperatureErrors_below,col4[LambdaPointidx:],color='grey')
+
 
 x = np.linspace(temp_above[0],temp_above[LambdaPointidx-1],100)
 plt.plot(x,expoFit(x,U0,C,d),color='red')
 
 xb = np.linspace(temp[LambdaPointidx],temp[cutoffPoint-1],100)
-plt.plot(xb,expoFit(xb,U0Bel,CBel,dBel),color='red')
-plt.show()
+plt.plot(xb,expoFit(xb,U0Bel,CBel,dBel),color='blue')
 
+plt.gca().yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, _: f"{x * 1000:.0f}"))
+plt.ylabel("Spannung $U_k$ [mV]")
+plt.xlabel("Temperatur [K]")
+plt.tick_params(axis='both', which='both', direction='in', length=4, width=2,
+               top=True, bottom=True, left=True, right=True)
+plt.grid()
+plt.show()
 #U0=0.00432
 #C=4.84
 #d=-0.00434
+
 def AllanBradleyToTemp(U,isAboveLambda):
     if isAboveLambda:
-        return C/np.log((U-d)/U0)
+        up = CErrAbove/np.log((U-dErrAbove)/U0ErrAbove)
+        down = CErrAboveBelow/np.log((U-dErrAboveBelow)/U0ErrAboveBelow)
+        uperror = up-C/np.log((U-d)/U0)
+        downerror = C/np.log((U-d)/U0)-down
+        return C/np.log((U-d)/U0),uperror,downerror
     else:
-        return CBel/np.log((U-dBel)/U0Bel)
+        up = CErrBelow/C/np.log((U-dErrBelow)/U0ErrBelow)
+        down = CErrBelowBelow/C/np.log((U-dErrBelowBelow)/U0ErrBelowBelow)
+        uperror = up-CBel/np.log((U-dBel)/U0Bel)
+        downerror = CBel/np.log((U-dBel)/U0Bel) - down
+        return CBel/np.log((U-dBel)/U0Bel),uperror,downerror
 
 
-
-AllanBradleyAbove = AllanBradleyToTemp(col4[:LambdaPointidx],True)
-AllanBradleyBelow = AllanBradleyToTemp(col4[LambdaPointidx:cutoffPoint],False)
-#print(AllanBradleyBelow)
-#print(AllanBradleyAbove)
 
 
 
