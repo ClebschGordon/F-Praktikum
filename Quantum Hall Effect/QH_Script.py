@@ -17,8 +17,10 @@ LongVoltage = data[:,4]
 Current = data[:,2]
 print(np.shape(HallVoltage))
 half = int(np.shape(HallVoltage)[0])/2
+print(half)
 
 
 plt.plot(HallVoltage[:]/Current[:])
 plt.plot(LongVoltage[:]/Current[:])
+plt.plot(HallVoltage[::-1]/Current[::-1])
 plt.show()
