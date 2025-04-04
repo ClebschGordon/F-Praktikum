@@ -31,6 +31,7 @@ plt.axhline(FieldStrength[115],color='red')
 
 from Supercond_Script import AllanBradleyToTemp
 temp = AllanBradleyToTemp(AllanBradley[50],True)
-print(temp,52.9*FieldStrength[50]/(384.5*math.pow(10,-6)))
+print("halla")
+print(temp[0],52.9*FieldStrength[50]/(384.5*math.pow(10,-6)))
 
 # Data seems to be fitting, but now we first need to average over all the peaks in order to get the real result

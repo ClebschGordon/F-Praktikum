@@ -65,9 +65,9 @@ y_fit_mbar = linear_func(x_fit_volts, m, b)
 #plt.show()
 
 # Print fitted parameters and their errors
-print(f"Fitted parameters and errors:")
-print(f"Slope (mBar/V) = {m:.4e} ± {m_error:.4e}")
-print(f"Intercept (mBar) = {b:.4e} ± {b_error:.4e}")
+#print(f"Fitted parameters and errors:")
+#print(f"Slope (mBar/V) = {m:.4e} ± {m_error:.4e}")
+#print(f"Intercept (mBar) = {b:.4e} ± {b_error:.4e}")
 
 
 # These fit parameters will now be used to calculate the pressure from the recorded Voltages (column: U_Manometer).
@@ -75,7 +75,7 @@ def linearDependence(Voltage):
     return m*Voltage + b
 #
 from TemperatureCalibration import pressure_to_temperature
-LambdaPointidx = 2235
+LambdaPointidx = 2230
 cutoffPoint = 2400
 temp_above = pressure_to_temperature(linearDependence(col3[:LambdaPointidx]),True)
 temp_below = pressure_to_temperature(linearDependence(col3[LambdaPointidx:cutoffPoint]),False)
@@ -84,16 +84,16 @@ temp = np.append(temp_above,temp_below)
 tempForPlot = np.append(temp_above,temp_belowForPlot)
 
 # Now we also need to fit the error bars of the data in order to calculate the errors of the fit parameters
-pressureErrors_above = linearDependence(col3[:LambdaPointidx]) + linearDependence(col3[:LambdaPointidx])*0.003 + 1
+pressureErrors_above = linearDependence(col3[:LambdaPointidx]) + linearDependence(col3[:LambdaPointidx])*0.03 + 1
 temperatureErrors_above = pressure_to_temperature(pressureErrors_above,True)
 
-pressureErrors_above_below = linearDependence(col3[:LambdaPointidx]) - linearDependence(col3[:LambdaPointidx])*0.003 - 1
+pressureErrors_above_below = linearDependence(col3[:LambdaPointidx]) - linearDependence(col3[:LambdaPointidx])*0.03 - 1
 temperatureError_above_below = pressure_to_temperature(pressureErrors_above_below,True)
 
-pressureErrors_below = linearDependence(col3[LambdaPointidx:]) + linearDependence(col3[LambdaPointidx:])*0.003 + 1
+pressureErrors_below = linearDependence(col3[LambdaPointidx:]) + linearDependence(col3[LambdaPointidx:])*0.03 + 1
 temperatureErrors_below = pressure_to_temperature(pressureErrors_below,False)
 
-pressureErrors_below_below = linearDependence(col3[LambdaPointidx:]) - linearDependence(col3[LambdaPointidx:])*0.003 - 1
+pressureErrors_below_below = linearDependence(col3[LambdaPointidx:]) - linearDependence(col3[LambdaPointidx:])*0.03 - 1
 temperatureErrors_below_below = pressure_to_temperature(pressureErrors_below_below,False)
 
 def expoFit(x,U0,C,d):
@@ -124,23 +124,29 @@ errorBelowParamsBelow, covariance = curve_fit(expoFit,temperatureErrors_below_be
 print("errorBelow"+str(errorBelowParamsBelow))
 U0ErrBelowBelow,CErrBelowBelow,dErrBelowBelow = errorBelowParamsBelow
 
-plt.plot(tempForPlot[:],col4[:],color='black')
+print(expoParamsAbove,errorAboveParams-expoParamsAbove,expoParamsAbove-errorAboveParamsBelow)
+print(expoParamsBelow,errorBelowParams-expoParamsBelow,expoParamsBelow-errorBelowParamsBelow)
+plt.scatter(tempForPlot[:],col4[:],color='lightblue',s=1,label='Messdaten')
 plt.plot(temperatureErrors_below_below[:-1],col4[LambdaPointidx:-1],color='grey')
-plt.plot(temperatureErrors_below,col4[LambdaPointidx:],color='grey')
+plt.plot(temperatureErrors_below,col4[LambdaPointidx:],color='grey',label='Fehlerbalken')
 
 
 x = np.linspace(temp_above[0],temp_above[LambdaPointidx-1],100)
-plt.plot(x,expoFit(x,U0,C,d),color='red')
+plt.plot(x,expoFit(x,U0,C,d),color='red',label='Exp. Fit für T>$T_\lambda$')
 
 xb = np.linspace(temp[LambdaPointidx],temp[cutoffPoint-1],100)
-plt.plot(xb,expoFit(xb,U0Bel,CBel,dBel),color='blue')
+plt.plot(xb,expoFit(xb,U0Bel,CBel,dBel),color='blue',label='Exp. Fit für T<$T_\lambda$')
 
 plt.gca().yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, _: f"{x * 1000:.0f}"))
 plt.ylabel("Spannung $U_k$ [mV]")
 plt.xlabel("Temperatur [K]")
 plt.tick_params(axis='both', which='both', direction='in', length=4, width=2,
                top=True, bottom=True, left=True, right=True)
-plt.grid()
+plt.axvline(x=2.17,linestyle='dotted',color='black')
+plt.text(2.2,0.04,'T$_\lambda=2.17\,K$')
+plt.grid(linestyle='dotted')
+plt.legend()
+plt.savefig("out/Calibration.png", dpi=300, bbox_inches='tight', pad_inches=0.0)
 plt.show()
 #U0=0.00432
 #C=4.84
