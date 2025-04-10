@@ -3,7 +3,7 @@ import numpy as np
 import io
 from scipy.optimize import curve_fit
 
-file_path = "Data_Nick_Salah/0.dat"
+file_path = "Data_Nick_Salah/3.dat"
 
 # Read file and replace commas with dots in memory
 with open(file_path, "r") as file:
@@ -39,8 +39,8 @@ pi = 3.142
 kb = 1.381*10**(-23)
 
 #defining function for the ratio between cyclotronmass and electron mass
-def mctomeratio(Magneticfield, Temperaturesmall, Amplitudehigh, Amplitudesmall):
-     return hbar*e*Magneticfield/(me*pi**2*kb*Temperaturesmall)*np.arccosh(Amplitudesmall/Amplitudehigh)
+def mctomeratio(Magneticfield, Temperaturehigh, Amplitudehigh, Amplitudesmall):
+     return hbar*e*Magneticfield/(me*pi**2*kb*Temperaturehigh)*np.arccosh(Amplitudesmall/Amplitudehigh)
 
 #defining fit curve for the prefactor
 def lorentz_curve(B , a , b):
@@ -49,8 +49,11 @@ def lorentz_curve(B , a , b):
 #defining longitudinal conductivity
 longcon = longres/(longres**2+hallres**2)
 
+ind_start = np.argmax(Magneticup>0.6)
+ind_end = np.argmax(Magneticup>1.2)
+
 #fitting to conductivity for up sweep
-params, covariance = curve_fit(lorentz_curve, Magnetic[:], longcon[:]) # use 4898 for 4.06K
+params, covariance = curve_fit(lorentz_curve, Magneticup[ind_start:ind_end], longcon[ind_start:ind_end]) # use 4898 for 4.06K
 m1, b1 = params
 
 x_fit_sfield = np.linspace(0, 9, 100)
@@ -62,13 +65,15 @@ print(m1, b1)
 longconlor= longcon[:]/(m1/(1+(b1*Magnetic[:])**2)) # use 4898 for 4.06K
 
 #plottin the oscillating part
-plt.plot(Magnetic[:], longconlor[:])
+plt.plot(Magneticup[ind_start:ind_end], longconlor[ind_start:ind_end])
 plt.show()
 
 #searching for max/min in a given B-field range
 #2-2.5T
 
-print(max(longconlor[837:1228]),min(longconlor[837:1228])) # use 841 and 1232 for 4.06K
-#for 4.06K 0.8482260193219099 0.2210450080120738 -> Amp : 0.3135 
+print(max(longconlor[ind_start:ind_end]),min(longconlor[ind_start:ind_end])) # use 841 and 1232 for 4.06K
+#for 4.06K 0.8482260193219099 0.2210450080120738 -> Amp : 0.3135 0.121
 
-#for 2.1K 0.6577411469835687 0.13519901241072224 -> Amp : 0.2615
+#for 2.1K 0.6577411469835687 0.13519901241072224 -> Amp : 0.2615 0.151
+
+print(mctomeratio(1.13,3.1, 0.121, 0.151))
