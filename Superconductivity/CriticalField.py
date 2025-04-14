@@ -52,8 +52,6 @@ avgtl = AllanBradleyToTemp(AllanBradley[181], True)[2]
 
 
 
-
-
 #Import manual gathered data
 file_path = "critfield.dat"
 

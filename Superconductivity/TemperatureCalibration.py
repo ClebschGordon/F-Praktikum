@@ -44,3 +44,6 @@ def pressure_to_temperature(pressure_mbar, above_threshold):
             temperature_k += A_coeffs_low[i] * log_term_low ** i
 
     return temperature_k
+
+print(pressure_to_temperature(3,False))
+print(pressure_to_temperature(3-3*0.03 -1,False))

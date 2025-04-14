@@ -52,17 +52,20 @@ errors = np.sqrt(np.diag(covariance))
 m_error, b_error = errors  # Error in slope and intercept
 
 # Generate fitted values
-x_fit_volts = np.linspace(min(x_data_volts), max(x_data_volts), 100)
+x_fit_volts = np.linspace(0, 1.2, 100)
 y_fit_mbar = linear_func(x_fit_volts, m, b)
 
 # Plot data and fitted line
-#plt.scatter(x_data_volts, y_data_mbar, label='Data', color='red')
-#plt.plot(x_fit_volts, y_fit_mbar, label=f'Fit: P = {m:.2e} * V + {b:.2e}', color='blue')
-#plt.xlabel('Voltage (V)')
-#plt.ylabel('Pressure (mBar)')
-#plt.legend()
-#plt.title('Linear Fit: Voltage vs. Pressure')
-#plt.show()
+plt.scatter(x_data_volts, y_data_mbar, label=r'Gemessene P-U$_P$ Paare', color='red')
+plt.plot(x_fit_volts, y_fit_mbar, label=r'Fit: P = 1051.10 $\cdot$U$_p$ -0.98', color='blue')
+plt.xlim(0,1.2)
+plt.ylim(0,1200)
+plt.xlabel(r'Spennung U$_p$ [V]')
+plt.ylabel(r'Druck [mBar]')
+plt.legend()
+plt.grid()
+plt.savefig("out/Manometer.png", dpi=300, bbox_inches='tight', pad_inches=0.0)
+plt.show()
 
 # Print fitted parameters and their errors
 #print(f"Fitted parameters and errors:")
@@ -93,7 +96,7 @@ temperatureError_above_below = pressure_to_temperature(pressureErrors_above_belo
 pressureErrors_below = linearDependence(col3[LambdaPointidx:]) + linearDependence(col3[LambdaPointidx:])*0.03 + 1
 temperatureErrors_below = pressure_to_temperature(pressureErrors_below,False)
 
-pressureErrors_below_below = linearDependence(col3[LambdaPointidx:]) - linearDependence(col3[LambdaPointidx:])*0.03 - 1
+pressureErrors_below_below = linearDependence(col3[LambdaPointidx:]) - 6/linearDependence(col3[LambdaPointidx:]) - 1
 temperatureErrors_below_below = pressure_to_temperature(pressureErrors_below_below,False)
 
 def expoFit(x,U0,C,d):
@@ -127,7 +130,7 @@ U0ErrBelowBelow,CErrBelowBelow,dErrBelowBelow = errorBelowParamsBelow
 print(expoParamsAbove,errorAboveParams-expoParamsAbove,expoParamsAbove-errorAboveParamsBelow)
 print(expoParamsBelow,errorBelowParams-expoParamsBelow,expoParamsBelow-errorBelowParamsBelow)
 plt.scatter(tempForPlot[:],col4[:],color='lightblue',s=1,label='Messdaten')
-plt.plot(temperatureErrors_below_below[:-1],col4[LambdaPointidx:-1],color='grey')
+plt.plot(temperatureErrors_below_below[:-40],col4[LambdaPointidx:-40],color='grey')
 plt.plot(temperatureErrors_below,col4[LambdaPointidx:],color='grey',label='Fehlerbalken')
 
 
@@ -140,17 +143,16 @@ plt.plot(xb,expoFit(xb,U0Bel,CBel,dBel),color='blue',label='Exp. Fit für T<$T_\
 plt.gca().yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, _: f"{x * 1000:.0f}"))
 plt.ylabel("Spannung $U_k$ [mV]")
 plt.xlabel("Temperatur [K]")
+plt.xlim(1.0,4.3)
 plt.tick_params(axis='both', which='both', direction='in', length=4, width=2,
                top=True, bottom=True, left=True, right=True)
 plt.axvline(x=2.17,linestyle='dotted',color='black')
 plt.text(2.2,0.04,'T$_\lambda=2.17\,K$')
 plt.grid(linestyle='dotted')
 plt.legend()
-plt.savefig("out/Calibration.png", dpi=300, bbox_inches='tight', pad_inches=0.0)
+plt.savefig("out/Calibration.png", dpi=300, bbox_inches='tight', pad_inches=0.01)
 plt.show()
-#U0=0.00432
-#C=4.84
-#d=-0.00434
+
 
 def AllanBradleyToTemp(U,isAboveLambda):
     if isAboveLambda:
