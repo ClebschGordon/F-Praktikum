@@ -56,11 +56,11 @@ x_fit_volts = np.linspace(0, 1.2, 100)
 y_fit_mbar = linear_func(x_fit_volts, m, b)
 
 # Plot data and fitted line
-plt.scatter(x_data_volts, y_data_mbar, label=r'Gemessene P-U$_P$ Paare', color='red')
+plt.errorbar(x_data_volts, y_data_mbar,y_data_mbar*0.05+1,0, label=r'Gemessene P-U$_P$ Paare', color='red',linestyle='none')
 plt.plot(x_fit_volts, y_fit_mbar, label=r'Fit: P = 1051.10 $\cdot$U$_p$ -0.98', color='blue')
 plt.xlim(0,1.2)
 plt.ylim(0,1200)
-plt.xlabel(r'Spennung U$_p$ [V]')
+plt.xlabel(r'Spannung U$_p$ [V]')
 plt.ylabel(r'Druck [mBar]')
 plt.legend()
 plt.grid()
